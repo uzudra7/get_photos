@@ -36,6 +36,10 @@ export default function Home() {
   const [oldQuery, setOldQuery] = useState<string>("");
   const [pagenumber, setPagenumber] = useState<number>(1);
   const [placeHolderTag, setPlaceHolderTag] = useState<string>("");
+  const [showMessage, setShowMessage] = useState<
+    "download successful" | "download error" | ""
+  >("");
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   const handleImageClick = (imageId: string) => {
     if (checkedImages.includes(imageId)) {
@@ -68,6 +72,7 @@ export default function Home() {
   };
 
   const queryFetchHandaler = () => {
+    setShowMessage("");
     fetchData().then((data) => setImages(data));
   };
 
@@ -83,7 +88,6 @@ export default function Home() {
       urls: { raw: image.urls.raw },
       placeHolderTag: placeHolderTag,
     }));
-    console.log(finalData);
 
     const requestOptions = {
       method: "POST",
@@ -106,42 +110,23 @@ export default function Home() {
       })
       .then((data) => {
         console.log("Data:", data);
-        // Handle response data as needed
+        setShowMessage("download successful");
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
-        // Handle errors
+        setShowMessage("download error");
       });
-    // const headings = [
-    //   "ID",
-    //   "Slug",
-    //   "Description",
-    //   "Raw URL",
-    //   "place holder tag",
-    // ];
-    // const csvContent =
-    //   "data:text/csv;charset=utf-8," +
-    //   [headings.join(",")]
-    //     .concat(
-    //       selectedImagesData.map((image) =>
-    //         [
-    //           image.id,
-    //           image.slug,
-    //           image.description,
-    //           image.urls.raw,
-    //           placeHolderTag,
-    //         ].join(",")
-    //       )
-    //     )
-    //     .join("\n");
-
-    // const encodedUri = encodeURI(csvContent);
-    // const link = document.createElement("a");
-    // link.setAttribute("href", encodedUri);
-    // link.setAttribute("download", "images.csv");
-    // document.body.appendChild(link);
-    // link.click();
   };
+
+  useEffect(() => {
+    if (showMessage) {
+      setIsVisible(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showMessage]);
 
   function nextPageHandaler() {
     if (pagenumber < total_pages) {
@@ -184,7 +169,16 @@ export default function Home() {
   ));
 
   return (
-    <main className="overflow-x-hidden">
+    <main className="relative overflow-x-hidden">
+      {showMessage != "" && isVisible && (
+        <div
+          className={` ${
+            showMessage == "download successful" ? "bg-green-800" : "bg-red-800"
+          } z-20 top-10 left-[40%] rounded-lg text-white font-bold fixed text-lg w-1/4 p-2 text-center`}
+        >
+          {showMessage}
+        </div>
+      )}
       <div className="flex p-6 items-center">
         <h1 className="text-3xl md:text-5xl font-bold text-center ml-10">
           Photos
